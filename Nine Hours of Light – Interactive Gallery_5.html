@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nine Hours of Light – Interactive Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e7ebed;--ink:#17232b;--mute:#566870;--accent:#b84a17;--ring:#b84a17;--shadow:0 22px 40px -14px rgba(23,35,43,.55);color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111a20;--ink:#e6ecef;--mute:#9aa9b1;--accent:#f0a35e;--ring:#f0a35e;--shadow:0 22px 40px -14px rgba(0,0,0,.8);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111a20;--ink:#e6ecef;--mute:#9aa9b1;--accent:#f0a35e;--ring:#f0a35e;--shadow:0 22px 40px -14px rgba(0,0,0,.8);color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.5 "Instrument Sans",system-ui,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 20px 56px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px;margin-bottom:28px}
+h1{font:500 clamp(2rem,5vw,3.2rem)/1.05 Newsreader,Georgia,serif;margin:0 0 8px;letter-spacing:-.01em}
+header p{margin:0;max-width:46ch;color:var(--mute)}
+button,select{font:inherit;color:inherit}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:999px;padding:10px 20px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--accent);color:#fff}
+:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));grid-auto-flow:dense;gap:16px}
+.tile{position:relative;display:block;padding:0;border:0;background:none;border-radius:14px;overflow:hidden;aspect-ratio:4/3;cursor:pointer;transition:box-shadow .3s,transform .3s}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.tile .cap{position:absolute;inset:auto 0 0 0;padding:28px 14px 12px;text-align:left;color:#fff;background:linear-gradient(transparent,rgba(5,10,16,.72));font-weight:600;font-size:.95rem}
+.tile .cap small{display:block;font-weight:400;opacity:.8}
+.tile.feature{grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
+@media (max-width:560px){.tile.feature{grid-column:span 1;grid-row:span 1;aspect-ratio:4/3}}
+@media (hover:hover){.tile:hover{box-shadow:var(--shadow);transform:translateY(-4px)}.tile:hover img{transform:scale(1.1)}}
+.tile:focus-visible{box-shadow:var(--shadow)}
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(8,12,16,.94);color:#eef2f4;padding:calc(64px + env(safe-area-inset-top,0px)) 16px calc(70px + env(safe-area-inset-bottom,0px))}
+.lb[hidden]{display:none}
+.top{position:absolute;top:env(safe-area-inset-top,0px);left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.ctl{display:flex;gap:8px;align-items:center}
+.lb button,.lb select{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 16px;cursor:pointer;color:#eef2f4}
+.lb select option{color:#111}
+.lb button:hover{background:rgba(255,255,255,.24)}
+.lb :focus-visible{outline-color:#f0a35e}
+figure{margin:0;width:min(900px,100%);flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+#big{width:100%;flex:1;min-height:0;object-fit:contain;border-radius:10px;transition:opacity .25s}
+figcaption{text-align:center}
+figcaption b{display:block;font:500 1.4rem Newsreader,Georgia,serif}
+figcaption span{color:#aebac1;font-size:.9rem}
+.nav{position:absolute;top:50%;translate:0 -50%;width:48px;height:48px;padding:0!important;font-size:1.6rem;line-height:1}
+.prev{left:max(10px,env(safe-area-inset-left,0px))}.next{right:max(10px,env(safe-area-inset-right,0px))}
+.bar{position:absolute;left:0;right:0;bottom:calc(46px + env(safe-area-inset-bottom,0px));height:3px;background:rgba(255,255,255,.12)}
+.bar i{display:block;height:100%;width:0;background:#f0a35e}
+.bar i.run{animation:fill linear forwards}
+@keyframes fill{to{width:100%}}
+.dots{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;gap:8px}
+.dots button{width:12px;height:12px;padding:0;border-radius:50%}
+.dots button[aria-current="true"]{background:#f0a35e;border-color:#f0a35e}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.bar i.run{animation:none;width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Nine hours of light</h1>
+      <p>One landscape for each stage of a day. Hover a tile to zoom, then select it to open the slideshow.</p>
+    </div>
+    <button class="btn" id="startShow">Play slideshow</button>
+  </header>
+  <main class="grid" id="grid"></main>
+</div>
+
+<div class="lb" id="lb" hidden role="dialog" aria-modal="true" aria-label="Slideshow">
+  <div class="top">
+    <span id="count"></span>
+    <div class="ctl">
+      <button id="play" aria-pressed="false">Play</button>
+      <select id="speed" aria-label="Seconds per slide"><option value="2000">2 s</option><option value="4000" selected>4 s</option><option value="7000">7 s</option></select>
+      <button id="close">Close</button>
+    </div>
+  </div>
+  <button class="nav prev" id="prev" aria-label="Previous image">‹</button>
+  <figure><img id="big" alt=""><figcaption><b id="cap"></b><span id="sub"></span></figcaption></figure>
+  <button class="nav next" id="next" aria-label="Next image">›</button>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="dots" id="dots"></div>
+</div>
+
+<script>
+const scenes=[
+ {n:"Before dawn",t:"4:45",sky:["#1b2a4a","#c9707a"],sun:{x:30,y:78,r:9,c:"#ffd9a0"},stars:1,hills:["#2b2f4a","#232640","#1a1c33"]},
+ {n:"Sunrise",t:"6:10",sky:["#f2a65a","#fbe3b0"],sun:{x:62,y:68,r:10,c:"#fff2c4"},hills:["#7a5a63","#5d4556","#40303f"]},
+ {n:"Morning",t:"9:00",sky:["#7fb7d9","#e8f3f7"],sun:{x:72,y:28,r:8,c:"#fffbe0"},hills:["#5f9a7a","#4a7f68","#2f5e50"]},
+ {n:"Midday",t:"12:30",sky:["#3f8fd1","#a8d4ef"],sun:{x:50,y:14,r:7,c:"#ffffff"},hills:["#4f9a56","#3a7d48","#25603a"]},
+ {n:"Afternoon",t:"3:30",sky:["#6aa6c9","#f4e2b5"],sun:{x:28,y:34,r:8,c:"#fff6cf"},hills:["#8a9a4f","#6b7d44","#4a5f38"]},
+ {n:"Golden hour",t:"5:50",sky:["#e58a4b","#f8d58a"],sun:{x:72,y:64,r:11,c:"#fff0b8"},hills:["#8a4e3a","#663a31","#442826"]},
+ {n:"Dusk",t:"6:40",sky:["#4a3a7a","#e57f84"],sun:{x:25,y:80,r:8,c:"#ffb48a"},hills:["#3a2d5a","#2c2346","#1f1a35"]},
+ {n:"Moonrise",t:"8:15",sky:["#12203d","#3a4f7a"],sun:{x:68,y:28,r:7,c:"#f1efe0"},stars:1,hills:["#1f2d4d","#17233f","#0f1830"]},
+ {n:"Midnight",t:"12:00",sky:["#070d1f","#16264a"],sun:{x:35,y:20,r:6,c:"#e9ecf5"},stars:1,hills:["#111b36","#0b132a","#070c1d"]}
+];
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function art(s,i){
+  const r=rng(i*97+5),X=s.sun.x*1.6,Y=s.sun.y;
+  let o=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.sky[0]}"/><stop offset="1" stop-color="${s.sky[1]}"/></linearGradient><radialGradient id="h"><stop offset="0" stop-color="${s.sun.c}" stop-opacity=".55"/><stop offset="1" stop-color="${s.sun.c}" stop-opacity="0"/></radialGradient></defs><rect width="160" height="100" fill="url(#g)"/>`;
+  if(s.stars)for(let k=0;k<45;k++)o+=`<circle cx="${(r()*160).toFixed(1)}" cy="${(r()*55).toFixed(1)}" r="${(.3+r()*.5).toFixed(2)}" fill="#fff" opacity="${(.35+r()*.6).toFixed(2)}"/>`;
+  o+=`<circle cx="${X}" cy="${Y}" r="${s.sun.r*3.4}" fill="url(#h)"/><circle cx="${X}" cy="${Y}" r="${s.sun.r}" fill="${s.sun.c}"/>`;
+  s.hills.forEach((c,j)=>{
+    const b=56+j*14,a=7-j*1.5,f=.05+j*.02,p=r()*6;let d=`M0 100L0 ${b}`;
+    for(let x=0;x<=160;x+=4)d+=`L${x} ${(b+a*Math.sin(x*f*2+p)+a/2*Math.sin(x*f*5+p*2)).toFixed(1)}`;
+    o+=`<path d="${d}L160 100Z" fill="${c}"/>`;
+  });
+  return"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(o+"</svg>");
+}
+scenes.forEach((s,i)=>s.src=art(s,i));
+
+const $=id=>document.getElementById(id),grid=$("grid"),lb=$("lb"),big=$("big"),prog=$("prog"),dots=$("dots");
+let cur=0,playing=false,timer=null,opener=null;
+
+scenes.forEach((s,i)=>{
+  const b=document.createElement("button");
+  b.className="tile"+(i===0?" feature":"");
+  b.setAttribute("aria-label",`Open ${s.n}, ${s.t}`);
+  b.innerHTML=`<img src="${s.src}" alt="Landscape at ${s.n.toLowerCase()}"><span class="cap">${s.n}<small>${s.t}</small></span>`;
+  b.onclick=()=>open(i,b);
+  grid.append(b);
+  const d=document.createElement("button");
+  d.setAttribute("aria-label",`Go to image ${i+1}`);
+  d.onclick=()=>{go(i);schedule()};
+  dots.append(d);
+});
+
+function show(i){
+  cur=(i+scenes.length)%scenes.length;
+  const s=scenes[cur];
+  big.style.opacity=0;
+  setTimeout(()=>{big.src=s.src;big.alt=`Landscape at ${s.n.toLowerCase()}`;big.style.opacity=1},140);
+  $("cap").textContent=s.n;$("sub").textContent=s.t;
+  $("count").textContent=`${cur+1} of ${scenes.length}`;
+  [...dots.children].forEach((d,k)=>d.setAttribute("aria-current",k===cur));
+}
+function go(i){show(i)}
+function schedule(){
+  clearTimeout(timer);
+  prog.classList.remove("run");prog.style.width="0";
+  if(!playing)return;
+  const ms=+$("speed").value;
+  void prog.offsetWidth;
+  prog.style.animationDuration=ms+"ms";prog.classList.add("run");
+  timer=setTimeout(()=>{go(cur+1);schedule()},ms);
+}
+function setPlay(on){
+  playing=on;
+  $("play").textContent=on?"Pause":"Play";
+  $("play").setAttribute("aria-pressed",on);
+  schedule();
+}
+function open(i,from,autoplay){
+  opener=from||null;lb.hidden=false;document.body.style.overflow="hidden";
+  big.removeAttribute("src");show(i);setPlay(!!autoplay);$("close").focus();
+}
+function close(){
+  setPlay(false);lb.hidden=true;document.body.style.overflow="";
+  if(opener)opener.focus();
+}
+$("prev").onclick=()=>{go(cur-1);schedule()};
+$("next").onclick=()=>{go(cur+1);schedule()};
+$("play").onclick=()=>setPlay(!playing);
+$("speed").onchange=schedule;
+$("close").onclick=close;
+$("startShow").onclick=e=>open(0,e.currentTarget,true);
+lb.addEventListener("click",e=>{if(e.target===lb)close()});
+document.addEventListener("keydown",e=>{
+  if(lb.hidden)return;
+  if(e.key==="Escape")close();
+  else if(e.key==="ArrowRight"){go(cur+1);schedule()}
+  else if(e.key==="ArrowLeft"){go(cur-1);schedule()}
+  else if(e.key===" "&&!["BUTTON","SELECT"].includes(document.activeElement.tagName)){e.preventDefault();setPlay(!playing)}
+});
+let tx=null;
+lb.addEventListener("touchstart",e=>{tx=e.touches[0].clientX},{passive:true});
+lb.addEventListener("touchend",e=>{
+  if(tx===null)return;
+  const dx=e.changedTouches[0].clientX-tx;tx=null;
+  if(Math.abs(dx)>50){go(cur+(dx<0?1:-1));schedule()}
+});
+</script>
+</body>
+</html>

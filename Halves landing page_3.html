@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Halves: split household bills without the awkward texts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Figtree:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F3FF; --paper:#FFFFFF; --ink:#141233; --muted:#5A5878; --line:#DAD6F2;
+  --blue:#2A3BFF; --on-blue:#FFFFFF; --pink:#FF8DA1; --mint:#7FE3B8; --sun:#FFD84D;
+  --display:"Unbounded","Arial Black",Impact,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0E0D24;--paper:#1A1838;--ink:#F1EFFF;--muted:#B0AED0;--line:#34316A;--blue:#5A68FF;color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#0E0D24;--paper:#1A1838;--ink:#F1EFFF;--muted:#B0AED0;--line:#34316A;--blue:#5A68FF;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1.0625rem/1.6 var(--body);-webkit-text-size-adjust:100%}
+h1,h2,h3,p,ul{margin:0}
+h1,h2,h3{font-family:var(--display);line-height:1.1;letter-spacing:-.03em}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:6px}
+.wrap{max-width:70rem;margin:0 auto;padding:0 1.25rem}
+
+.nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
+.logo{font:800 1.4rem var(--display);text-decoration:none}
+.nav a.s{font-weight:700;text-decoration:none;padding:.6rem 1rem;border:2px solid var(--ink);border-radius:999px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:3.25rem;padding:0 1.6rem;border:0;border-radius:14px;
+  background:var(--blue);color:var(--on-blue);font:700 1.05rem var(--body);cursor:pointer;text-decoration:none;
+  box-shadow:0 5px 0 rgba(20,18,51,.55);transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(2px);box-shadow:0 3px 0 rgba(20,18,51,.55)}
+.btn:active{transform:translateY(5px);box-shadow:0 0 0 rgba(20,18,51,.55)}
+
+/* Hero */
+.hero{display:grid;gap:2.5rem;padding:1.5rem 0 3.5rem}
+.hero h1{font-size:clamp(2.1rem,8.5vw,4.4rem);font-weight:800}
+.hero .lede{margin-top:1.25rem;font-size:1.2rem;color:var(--muted);max-width:32rem}
+.hero .btn{margin-top:1.75rem}
+.hero .fine{margin-top:.9rem;font-size:.95rem;color:var(--muted)}
+
+/* Interactive receipt: the memorable thing */
+.receipt{background:var(--paper);border:2px solid var(--ink);border-radius:20px;padding:1.4rem 1.25rem 1.25rem;max-width:26rem;width:100%;justify-self:center;
+  transform:rotate(-1.5deg);box-shadow:8px 8px 0 var(--pink)}
+.receipt h3{font-size:1rem;font-weight:700}
+.receipt .sub{font-size:.9rem;color:var(--muted);margin-top:.2rem}
+.lines{list-style:none;padding:0;margin:1rem 0;border-top:2px dashed var(--line);border-bottom:2px dashed var(--line)}
+.lines li{display:flex;justify-content:space-between;padding:.55rem 0}
+.lines li span:last-child{font-variant-numeric:tabular-nums;font-weight:700}
+.who{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1rem;padding:0;border:0}
+.who legend{font-size:.9rem;color:var(--muted);margin-bottom:.5rem;padding:0}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.chip label{display:inline-block;padding:.5rem 1rem;border:2px solid var(--ink);border-radius:999px;font-weight:700;cursor:pointer;background:transparent;transition:background .15s}
+.chip input:checked+label{background:var(--mint);color:#102018}
+.chip input:focus-visible+label{outline:3px solid var(--sun);outline-offset:3px}
+.each{display:flex;align-items:baseline;justify-content:space-between;font-weight:700}
+.each b{font:800 2.2rem var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+
+/* Features */
+.section{padding:3.5rem 0}
+.section>h2{font-size:clamp(1.7rem,5.5vw,2.8rem);font-weight:700;max-width:18ch}
+.grid{display:grid;gap:1rem;margin-top:2rem;padding:0;list-style:none}
+.f{border-radius:24px;padding:1.5rem;color:#141233}
+.f h3{font-size:1.2rem;font-weight:700}
+.f p{margin-top:.6rem;max-width:28rem}
+.f svg{width:2.4rem;height:2.4rem;margin-bottom:1rem}
+.f.a{background:var(--sun)} .f.b{background:var(--mint)} .f.c{background:var(--pink)} .f.d{background:#BFC6FF}
+
+/* Sign up */
+.signup{background:var(--blue);color:var(--on-blue);border-radius:32px;padding:2.25rem 1.5rem;margin-bottom:3rem}
+.signup h2{font-size:clamp(1.7rem,5.5vw,2.8rem);font-weight:800;max-width:15ch}
+.signup p{margin-top:1rem;max-width:30rem;opacity:.92}
+.signup form{display:grid;gap:.75rem;margin-top:1.75rem;max-width:30rem}
+.signup label{font-weight:700}
+.signup input[type=email]{min-height:3.25rem;border-radius:14px;border:2px solid transparent;padding:0 1rem;font:500 1.05rem var(--body);background:#fff;color:#141233;width:100%}
+.signup .btn{background:var(--sun);color:#141233}
+.status{min-height:1.5em;font-weight:700}
+
+footer{padding:0 0 2.5rem;color:var(--muted);font-size:.95rem}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 2rem}
+
+@media (min-width:700px){
+  .wrap{padding:0 2rem}
+  .grid{grid-template-columns:1fr 1fr;gap:1.25rem}
+  .f{padding:2rem}
+  .signup{padding:3.5rem}
+  .signup form{grid-template-columns:1fr auto;align-items:end}
+  .signup form label{grid-column:1/-1}
+  .status{grid-column:1/-1}
+}
+@media (min-width:1000px){
+  .hero{grid-template-columns:1.2fr .8fr;align-items:center;gap:4rem;padding:4rem 0 5.5rem}
+  .receipt{justify-self:end}
+  .section{padding:5rem 0}
+  .grid{grid-template-columns:repeat(4,1fr)}
+  .f{padding:1.5rem}
+  .signup{padding:4.5rem}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn,.chip label{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="nav">
+    <a class="logo" href="#top">Halves</a>
+    <a class="s" href="#signup">Sign up</a>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="h1">
+      <div>
+        <h1 id="h1">Split the house bills. Skip the awkward texts.</h1>
+        <p class="lede">Halves keeps track of who paid for what in your shared home, and tells everyone exactly what they owe, so rent day stops being a negotiation.</p>
+        <a class="btn" href="#signup">Sign up free</a>
+        <p class="fine">Works for roommates, couples and families.</p>
+      </div>
+
+      <div class="receipt">
+        <h3>October bills</h3>
+        <p class="sub">Tap a housemate to change the split</p>
+        <ul class="lines">
+          <li><span>Rent</span><span>$1,800.00</span></li>
+          <li><span>Internet</span><span>$60.00</span></li>
+          <li><span>Electricity</span><span>$84.00</span></li>
+        </ul>
+        <fieldset class="who">
+          <legend>Splitting between</legend>
+          <div class="chip"><input type="checkbox" id="p1" checked><label for="p1">Maya</label></div>
+          <div class="chip"><input type="checkbox" id="p2" checked><label for="p2">Jon</label></div>
+          <div class="chip"><input type="checkbox" id="p3" checked><label for="p3">Priya</label></div>
+        </fieldset>
+        <div class="each"><span>Each pays</span><b id="each" aria-live="polite">$648.00</b></div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="fh">
+      <h2 id="fh">Everything a shared home needs, nothing it doesn’t.</h2>
+      <ul class="grid">
+        <li class="f a">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>
+          <h3>Fair splits</h3>
+          <p>Split evenly, by percentage, or by room size. Halves does the maths.</p>
+        </li>
+        <li class="f b">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>
+          <h3>Recurring bills</h3>
+          <p>Add rent and utilities once. They reappear every month on their own.</p>
+        </li>
+        <li class="f c">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg>
+          <h3>Gentle reminders</h3>
+          <p>Halves nudges people who owe, so you never have to.</p>
+        </li>
+        <li class="f d">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M7 15h3"/></svg>
+          <h3>Settle up fast</h3>
+          <p>Pay back with a bank transfer or card, and the balance clears right away.</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="signup" id="signup" aria-labelledby="sh">
+      <h2 id="sh">Start splitting in two minutes.</h2>
+      <p>Create your home, invite your housemates, and add your first bill. It’s free for households of up to five.</p>
+      <form id="form" novalidate>
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+        <button class="btn" type="submit">Sign up</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+</div>
+<footer><div class="wrap"><span>© 2026 Halves</span><span>hello@halves.example</span></div></footer>
+
+<script>
+(function(){
+  var total=1944,boxes=document.querySelectorAll('.who input'),out=document.getElementById('each');
+  function fmt(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function update(){
+    var n=0;boxes.forEach(function(b){if(b.checked)n++;});
+    out.textContent=n?fmt(total/n):'Pick someone';
+  }
+  boxes.forEach(function(b){b.addEventListener('change',update);});
+  update();
+
+  var form=document.getElementById('form'),email=document.getElementById('email'),st=document.getElementById('status');
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var v=email.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+      st.textContent='Enter a valid email address, like you@example.com.';
+      email.focus();return;
+    }
+    st.textContent='You’re on the list. This is a demo page, so nothing was sent.';
+    form.reset();
+  });
+})();
+</script>
+</body>
+</html>
